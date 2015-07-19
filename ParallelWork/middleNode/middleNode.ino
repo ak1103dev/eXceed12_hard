@@ -4,7 +4,7 @@
 const char* ssid     = "ak1103@#$/";
 const char* password = "#0804521864*";
 const char* host = "research27.ml";
-const int httpPort = 8001;
+
 WiFiClient client;
 
 #define PT_DELAY(pt, ms, ts) \
@@ -15,11 +15,11 @@ int i = 0;
 bool letgo = false;
 int countSuccess = 0;
 
-struct pt pt_taskSerial;
-struct pt pt_taskClient;
+struct pt pt_taskRead;
+struct pt pt_taskWrite;
 
 ///////////////////////////////////////////////////////
-PT_THREAD(taskSerial(struct pt* pt))
+PT_THREAD(taskRead(struct pt* pt))
 {
   static uint32_t ts;
 
@@ -27,15 +27,15 @@ PT_THREAD(taskSerial(struct pt* pt))
 
   while (1)
   {
-    Serial.readStringUntil('\r');
-    PT_DELAY(pt, 10, ts);
+	  readRequest();
+    PT_DELAY(pt, 1000, ts);
   }
 
   PT_END(pt);
 }
 
 ///////////////////////////////////////////////////////
-PT_THREAD(taskClient(struct pt* pt))
+PT_THREAD(taskWrite(struct pt* pt))
 {
   static uint32_t ts;
 
@@ -43,26 +43,20 @@ PT_THREAD(taskClient(struct pt* pt))
 
   while (1)
   {
-    Serial.readStringUntil('\r');
-    PT_DELAY(pt, 10, ts);
+	  writeRequest(serialEvent());
+    PT_DELAY(pt, 100, ts);
   }
 
   PT_END(pt);
 }
 
 ///////////////////////////////////////////////////////
-void serialEvent() {
+String serialEvent() {
+  String inputStr = "";
   if(Serial.available() > 0) {
-    String inputStr = "";
     inputStr = Serial.readStringUntil('\r');
-
-    if (inputStr == "Success") {
-      countSuccess++;
-      Serial.print("successX : ");
-      Serial.println(countSuccess);
-    }
-    Serial.println("get");
   }
+  return inputStr;
 }
 
 ///////////////////////////////////////////////////////
@@ -72,42 +66,33 @@ void readRequest() {
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
                "Connection: close\r\n\r\n");
-  delay(10);
+//  delay(10);
   int countLine = 0;
   while(client.available()){
-    String line = client.readStringUntil('\n');
-    countLine++;
-    if (countLine > 8) {
-      if (line == "LetGo") {
-        letgo = true;
-      }
-      else if (line == "exit") {
-        letgo = false;
-      }
-      else {
-        Serial.print("<no>");
-        Serial.print(line);
-        Serial.println("</no>");
-      }
-    }
+    String line = "";
+    line = client.readStringUntil('\n');
+//	  countLine++;
+//	  if (countLine > 8) {
+		  Serial.print(line);
+//	  }
   }
 }
 
 ///////////////////////////////////////////////////////
-void writeRequest(String qry) {
+void writeRequest(String dataBody) {
 
-  String url = "/write/" + qry;
+  String url = "/write/" + dataBody;
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
                "Connection: close\r\n\r\n");
-  delay(10);
+//  delay(10);
 }
 
 ///////////////////////////////////////////////////////
 void setup() {
   Serial.begin(115200);
-  PT_INIT(&pt_taskSerial);
-  PT_INIT(&pt_taskClient);
+  PT_INIT(&pt_taskRead);
+  PT_INIT(&pt_taskWrite);
   delay(10);
 
   Serial.println();
@@ -129,21 +114,13 @@ void setup() {
 ///////////////////////////////////////////////////////
 void loop() {
 
-  taskSerial(&pt_taskSerial);
-  serialEvent();
+  const int httpPort = 8001;
   if (!client.connect(host, httpPort)) {
     Serial.println("connection failed");
     return;
   }
-
-  if (letgo == true) {
-    Serial.print("Hello\r");
-  }
-  if (countSuccess >= 3) {
-    Serial.println("sentExit");
-    writeRequest("exit");
-  }
-  readRequest();
-  delay(1000);
+  taskRead(&pt_taskRead);
+  //taskWrite(&pt_taskWrite);
+//  delay(1000);
 }
 

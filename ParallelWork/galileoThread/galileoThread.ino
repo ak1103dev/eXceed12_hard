@@ -17,14 +17,26 @@ struct pt pt_taskLED3;
 struct pt pt_taskLED4;
 struct pt pt_taskSW;
 struct pt pt_taskKNOB;
-struct pt pt_taskSerial;
+struct pt pt_taskRead;
+struct pt pt_taskWrite;
 
 int led1, led2, led3, led4;
 int sw, knob;
 String val;
 
+void setValue() {
+  switch(val.charAt(3)) {
+    case '0' : sw = LOW; break;
+    case '1' : sw = HIGH; break;
+  }
+//  switch(val.charAt(8)) {
+//    case '0' : knob = LOW; break;
+//    case '1' : knob = HIGH; break;
+//  }
+}
+
 ///////////////////////////////////////////////////////
-PT_THREAD(taskSerial(struct pt* pt))
+PT_THREAD(taskRead(struct pt* pt))
 {
   static uint32_t ts;
 
@@ -33,14 +45,35 @@ PT_THREAD(taskSerial(struct pt* pt))
   while (1)
   {
     val = Serial1.readStringUntil('\r');
-    if (val.substring(0, 5) == "pinsw") {
-      if (val.substring(5, 6) == "1") {
-        sw = HIGH; 
-      }
-      else {
-        sw = LOW;
-      }
-    }
+    Serial.print(val.charAt(3));
+    setValue();
+    PT_DELAY(pt, 10, ts);
+  }
+
+  PT_END(pt);
+}
+
+///////////////////////////////////////////////////////
+PT_THREAD(taskWrite(struct pt* pt))
+{
+  static uint32_t ts;
+
+  PT_BEGIN(pt);
+
+  while (1)
+  {
+    Serial1.print("sw");
+    Serial1.print(digitalRead(SW));
+
+    Serial1.print("knob");
+    Serial1.print(analogRead(KNOB));
+
+    Serial1.print(led1);
+    Serial1.print(led2);
+    Serial1.print(led3);
+    Serial1.print(led4);
+
+    Serial1.print("\r");
     PT_DELAY(pt, 10, ts);
   }
 
@@ -56,16 +89,12 @@ PT_THREAD(taskSW(struct pt* pt))
 
   while (1)
   {
-    //sw = digitalRead(SW);
-	Serial1.print("pinsw");
-	Serial1.print(digitalRead(SW));
-	Serial1.print("\r");
-	if (!sw) {
-		led4 = HIGH;
-	}
+	  if (!sw) {
+		  led4 = HIGH;
+   	}
     else {
-		led4 = LOW;
-	}
+		  led4 = LOW;
+	  }
     PT_DELAY(pt, 10, ts);
   }
 
@@ -81,16 +110,12 @@ PT_THREAD(taskKNOB(struct pt* pt))
 
   while (1)
   {
-    //knob = analogRead(KNOB);
-	Serial1.print("pinkn");
-	Serial1.print(analogRead(KNOB));
-	Serial1.print("\r");
-	//if (knob> 500) {
-	//	led3 = HIGH;
-	//}
-	//else {
-	//	led3 = LOW;
-	//}
+	  if (knob> 500) {
+		  led3 = HIGH;
+	  }
+	  else {
+		  led3 = LOW;
+	  }
     PT_DELAY(pt, 10, ts);
   }
 
@@ -165,24 +190,27 @@ PT_THREAD(taskLED4(struct pt* pt))
 void setup()
 {
 	Serial1.begin(115200);
-  pinMode(LED1, OUTPUT);
-  pinMode(LED2, OUTPUT);
-  pinMode(LED3, OUTPUT);
-  pinMode(LED4, OUTPUT);
-  pinMode(SW, INPUT);
-  PT_INIT(&pt_taskLED1);
-  PT_INIT(&pt_taskLED2);
-  PT_INIT(&pt_taskLED3);
-  PT_INIT(&pt_taskLED4);
-  PT_INIT(&pt_taskSW);
-  PT_INIT(&pt_taskKNOB);
-  PT_INIT(&pt_taskSerial);
+  Serial.begin(9600);
+  
+	pinMode(LED1, OUTPUT);
+	pinMode(LED2, OUTPUT);
+	pinMode(LED3, OUTPUT);
+	pinMode(LED4, OUTPUT);
+	pinMode(SW, INPUT);
+
+	PT_INIT(&pt_taskLED1);
+	PT_INIT(&pt_taskLED2);
+	PT_INIT(&pt_taskLED3);
+	PT_INIT(&pt_taskLED4);
+	PT_INIT(&pt_taskSW);
+	PT_INIT(&pt_taskKNOB);
+	PT_INIT(&pt_taskRead);
+	PT_INIT(&pt_taskWrite);
+
 	led1 = HIGH;
 	led2 = HIGH;
 	led3 = LOW;
 	led4 = LOW;
-  sw = HIGH;
-	knob = 300;
 }
 
 ///////////////////////////////////////////////////////
@@ -194,5 +222,6 @@ void loop()
   taskLED4(&pt_taskLED4);
   taskSW(&pt_taskSW);
   taskKNOB(&pt_taskKNOB);
-  taskSerial(&pt_taskSerial);
+  taskRead(&pt_taskRead);
+  taskWrite(&pt_taskWrite);
 }
