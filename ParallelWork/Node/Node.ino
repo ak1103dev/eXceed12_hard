@@ -15,7 +15,8 @@ struct pt pt_taskWrite;
 
 bool letgo = false;
 int countSuccess = 0;
-String val = "";
+String readVal = "";
+String writeVal = "";
 
 void writeRequest(String val) {
   String url = "/write/" + val;
@@ -35,7 +36,7 @@ void readRequest() {
     String line = client.readStringUntil('\n');
     countLine++;
     if (countLine > 8) {
-		val = line;
+		  readVal = line;
     }
   }
 }
@@ -48,11 +49,11 @@ PT_THREAD(taskRead(struct pt* pt))
 
   while (1)
   {
-	if(Serial.available() > 0) {
-		val = Serial.readStringUntil('\r');
-		writeRequest(val);
+	while(Serial.available() > 0) {
+		writeVal = Serial.readStringUntil('\r');
+		writeRequest(writeVal);
 	}
-	PT_DELAY(pt, 100, ts);
+	PT_DELAY(pt, 50, ts);
   }
 
   PT_END(pt);
@@ -66,10 +67,9 @@ PT_THREAD(taskWrite(struct pt* pt))
 
   while (1)
   {
-	readRequest();
-
-	Serial.print("\t");
-	Serial.print(val);
+	  readRequest();
+	  Serial.print("\t");
+	  Serial.print(readVal);
     PT_DELAY(pt, 100, ts);
   }
 
@@ -119,6 +119,5 @@ void loop() {
  //   writeRequest("exit");
  // }
  // readRequest();
-  delay(1000);
 }
 

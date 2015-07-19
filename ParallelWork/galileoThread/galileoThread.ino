@@ -47,7 +47,7 @@ PT_THREAD(taskRead(struct pt* pt))
     val = Serial1.readStringUntil('\r');
     Serial.print(val.charAt(3));
     setValue();
-    PT_DELAY(pt, 10, ts);
+    PT_DELAY(pt, 50, ts);
   }
 
   PT_END(pt);
@@ -64,17 +64,17 @@ PT_THREAD(taskWrite(struct pt* pt))
   {
     Serial1.print("sw");
     Serial1.print(digitalRead(SW));
-
+    PT_DELAY(pt, 10, ts);
     Serial1.print("knob");
     Serial1.print(analogRead(KNOB));
-
+    PT_DELAY(pt, 10, ts);
     Serial1.print(led1);
     Serial1.print(led2);
     Serial1.print(led3);
     Serial1.print(led4);
 
     Serial1.print("\r");
-    PT_DELAY(pt, 10, ts);
+    PT_DELAY(pt, 100, ts);
   }
 
   PT_END(pt);
@@ -211,6 +211,7 @@ void setup()
 	led2 = HIGH;
 	led3 = LOW;
 	led4 = LOW;
+	sw = 1;
 }
 
 ///////////////////////////////////////////////////////
