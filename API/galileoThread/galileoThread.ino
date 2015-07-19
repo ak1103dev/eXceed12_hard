@@ -28,10 +28,12 @@ void setValue() {
     case '0' : sw = LOW; break;
     case '1' : sw = HIGH; break;
   }
-//  switch(val.charAt(8)) {
-//    case '0' : knob = LOW; break;
-//    case '1' : knob = HIGH; break;
-//  }
+//  Serial.print((int)val.charAt(8));
+  if (val.charAt(8)-'0' < 5) {
+    knob = LOW;
+  } else {
+    knob = HIGH;
+  }
 }
 
 void serialEvent() {
@@ -103,12 +105,7 @@ PT_THREAD(taskKNOB(struct pt* pt))
 
   while (1)
   {
-	  if (knob> 500) {
-		  led3 = HIGH;
-	  }
-	  else {
-		  led3 = LOW;
-	  }
+		led3 = knob;
     PT_DELAY(pt, 10, ts);
   }
 
@@ -125,7 +122,9 @@ PT_THREAD(taskLED1(struct pt* pt))
   while (1)
   {
     digitalWrite(LED1, led1);
-    PT_DELAY(pt, 10, ts);
+    PT_DELAY(pt, 300, ts);
+	digitalWrite(LED1, 0);
+    PT_DELAY(pt, 700, ts);
   }
 
   PT_END(pt);
@@ -141,7 +140,9 @@ PT_THREAD(taskLED2(struct pt* pt))
   while (1)
   {
     digitalWrite(LED2, led2);
-    PT_DELAY(pt, 10, ts);
+    PT_DELAY(pt, 500, ts);
+    digitalWrite(LED2, 0);
+    PT_DELAY(pt, 500, ts);
   }
 
   PT_END(pt);
@@ -157,7 +158,7 @@ PT_THREAD(taskLED3(struct pt* pt))
   while (1)
   {
     digitalWrite(LED3, led3);
-    PT_DELAY(pt, 10, ts);
+    PT_DELAY(pt, 1000, ts);
   }
 
   PT_END(pt);
