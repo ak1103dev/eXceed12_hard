@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 
-const char* ssid     = "ak1103@#$/";
-const char* password = "#0804521864*";
+const char* ssid     = "your-ssid";
+const char* password = "your-wifi-password";
 const char* host = "research27.ml";
 WiFiClient client;
 
