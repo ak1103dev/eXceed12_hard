@@ -1,20 +1,27 @@
 #include <ESP8266WiFi.h>
 
-const char* ssid     = "your-wifi-name";
-const char* password = "wifi-password";
+const char* ssid     = "ak1103@#$/";
+const char* password = "#0804521864*";
 const char* host = "research27.ml";
 WiFiClient client;
 
 String val = "";
 
 void writeRequest(String value) {
-  String url = "/write/" + value;
+  String url;
+  if(value == val) {
+    url = "/read/";
+  }
+  else {
+    val = value;
+    url = "/write/" + val;
+  }
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
                "Connection: close\r\n\r\n");
 }
 
-void readRequest() {
+void readRequest() {    
   int countLine = 0;
   while(client.available()){
     String line = client.readStringUntil('\n');
@@ -27,9 +34,9 @@ void readRequest() {
 
 void serialEvent() {
 	while (Serial.available() > 0) {
-		val = Serial.readStringUntil('\r');
+		String value = Serial.readStringUntil('\r');
     delay(10);
-    writeRequest(val);
+    writeRequest(value);
     delay(10);
     readRequest();
     delay(10);

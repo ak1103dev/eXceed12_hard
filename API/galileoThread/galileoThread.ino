@@ -24,16 +24,32 @@ int sw, knob;
 String val;
 
 void setValue() {
-  switch(val.charAt(3)) {
-    case '0' : sw = LOW; break;
-    case '1' : sw = HIGH; break;
+//  switch(val.charAt(3)) {
+//    case '0' : sw = LOW; break;
+//    case '1' : sw = HIGH; break;
+//  }
+  switch(val.charAt(4)) {
+    case '0': led1 = LOW; break;
+    case '1': led1 = HIGH; break;
+  }
+  switch(val.charAt(5)) {
+    case '0': led2 = LOW; break;
+    case '1': led2 = HIGH; break;
+  }
+  switch(val.charAt(6)) {
+    case '0': led3 = LOW; break;
+    case '1': led3 = HIGH; break;
+  }
+  switch(val.charAt(7)) {
+    case '0': led4 = LOW; break;
+    case '1': led4 = HIGH; break;
   }
 //  Serial.print((int)val.charAt(8));
-  if (val.charAt(8)-'0' < 5) {
-    knob = LOW;
-  } else {
-    knob = HIGH;
-  }
+//  if (val.charAt(8)-'0' < 5) {
+//    knob = LOW;
+//  } else {
+//    knob = HIGH;
+//  }
 }
 
 void serialEvent() {
@@ -55,9 +71,6 @@ PT_THREAD(taskSerial(struct pt* pt))
   {
     Serial1.print("sw");
     Serial1.print(digitalRead(SW));
-
-    Serial1.print("knob");
-    Serial1.print(analogRead(KNOB));
 
     Serial1.print(led1);
     Serial1.print(led2);
@@ -84,6 +97,7 @@ PT_THREAD(taskSW(struct pt* pt))
 
   while (1)
   {
+    sw = digitalRead(SW);
 	  if (!sw) {
 		  led4 = HIGH;
    	}
